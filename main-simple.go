@@ -5,7 +5,6 @@ import (
 	_ "database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	"html/template"
 	"net/http"
 )
@@ -27,20 +26,15 @@ func checkErr(err error) {
 
 func main() {
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
+	//stmt, err := db.Prepare("insert into posts(title, body) values(?,?)")
+	//
+	//checkErr(err)
+	//
+	//_ , err = stmt.Exec("My First Post", "My first content")
+	//checkErr(err)
+	//
+	//db.Close()
 
-	fmt.Println(http.ListenAndServe(":8080", r))
-}
-
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	t := template.Must(template.ParseFiles("templates/index.html"))
-	if err := t.ExecuteTemplate(w, "index.html", ListPosts()); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func ListPosts() []Post {
 	rows, err := db.Query("Select * from posts")
 	checkErr(err)
 
@@ -52,5 +46,16 @@ func ListPosts() []Post {
 		items = append(items, post)
 	}
 	db.Close()
-	return items
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+		t := template.Must(template.ParseFiles("templates/index.html"))
+		if err := t.ExecuteTemplate(w, "index.html", items); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		// fmt.Fprintf(w, "Hello World")
+	})
+
+	fmt.Println(http.ListenAndServe(":8080", nil))
 }
