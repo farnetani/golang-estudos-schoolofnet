@@ -28,6 +28,10 @@ func checkErr(err error) {
 func main() {
 
 	r := mux.NewRouter()
+
+	// Criando uma rota static
+	r.PathPrefix("/static").Handler(http.StripPrefix("/static", http.FileServer(http.Dir("static/"))))
+
 	r.HandleFunc("/", HomeHandler)
 
 	fmt.Println(http.ListenAndServe(":8080", r))
